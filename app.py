@@ -1,26 +1,33 @@
+# app.py
+import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 
-def simulate_qubits(n_qubits):
-    N = 2 ** n_qubits
-    # Equal superposition: amplitude 1/sqrt(N)
-    amplitudes = np.ones(N) / np.sqrt(N)
-    # Probability
-    probabilities = amplitudes**2
-    # Labels: bit patterns
-    labels = [format(i, f'0{n_qubits}b') for i in range(N)]
-    return labels, probabilities
+st.title("Qubit Superposition Visualization")
 
-# --- Parameters ---
-n_qubits = 3  # Change 1,2,3,... to see effect
+st.write("""
+ဒီနေရာမှာ **qubit တိုးတိုင်း state doubling** ကို မြင်နိုင်ပါတယ်။  
+- Bar = basis state (bit pattern)  
+- Height = probability
+""")
 
-labels, probabilities = simulate_qubits(n_qubits)
+# --- Interactive slider ---
+n_qubits = st.slider("Number of Qubits", min_value=1, max_value=5, value=2)
 
-# --- Plot ---
-plt.figure(figsize=(8,4))
-plt.bar(labels, probabilities, color='skyblue')
-plt.xlabel("Qubit basis states (bit pattern)")
-plt.ylabel("Probability")
-plt.title(f"Superposition of {n_qubits} Qubits")
-plt.ylim(0, 1)
-plt.show()
+# --- Compute superposition ---
+N = 2 ** n_qubits
+amplitudes = np.ones(N) / np.sqrt(N)  # equal superposition
+probabilities = amplitudes**2
+labels = [format(i, f'0{n_qubits}b') for i in range(N)]
+
+# --- Plotting ---
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.bar(labels, probabilities, color='skyblue')
+ax.set_xlabel("Qubit basis states (bit pattern)")
+ax.set_ylabel("Probability")
+ax.set_title(f"Superposition of {n_qubits} Qubits")
+ax.set_ylim(0, 1)
+st.pyplot(fig)
+
+st.write(f"Number of basis states: {N} = 2^{n_qubits}")
+st.write("As you increase qubits, the number of bit patterns doubles (2ⁿ growth).")
