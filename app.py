@@ -1,60 +1,46 @@
+# app.py
+import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 
+st.title("Grover Algorithm Simulation (Toy Example)")
+
+# --- Parameters ---
+n_qubits = st.slider("Number of Qubits", min_value=2, max_value=5, value=2)
+correct_index = st.number_input("Correct state (0..{})".format(2**n_qubits - 1), min_value=0, max_value=2**n_qubits-1, value=2)
+
+# --- Grover Simulation Functions ---
 def grover_step(amplitudes, correct_index):
-    """Perform one Grover iteration: oracle + diffusion"""
     N = len(amplitudes)
-    
-    # --- Oracle: flip phase of correct state ---
-    amplitudes[correct_index] *= -1
-    
-    # --- Diffusion: inversion about mean ---
-    mean = amplitudes.mean()
+    amplitudes[correct_index] *= -1          # Oracle
+    mean = amplitudes.mean()                 # Diffusion
     amplitudes = 2*mean - amplitudes
     return amplitudes
 
 def simulate_grover(n_qubits, correct_index):
     N = 2 ** n_qubits
-    amplitudes = np.ones(N) / np.sqrt(N)  # initial equal superposition
-    
+    amplitudes = np.ones(N) / np.sqrt(N)
     history = [amplitudes.copy()]
-
-    # Optimal number of iterations ≈ pi/4 * sqrt(N)
-    n_iterations = int(np.round(np.pi/4 * np.sqrt(N)))
-
-    print(f"Simulating Grover with {n_qubits} qubits, correct state: {correct_index}")
-    print(f"Initial amplitudes: {amplitudes}")
-    print(f"Performing {n_iterations} iterations...\n")
-    
-    for i in range(n_iterations):
+    n_iterations = int(round(np.pi/4 * np.sqrt(N)))
+    for _ in range(n_iterations):
         amplitudes = grover_step(amplitudes, correct_index)
         history.append(amplitudes.copy())
-        probs = np.round(amplitudes**2, 3)
-        print(f"Iteration {i+1}: Probabilities: {probs}")
-    
     return history
 
 def plot_history(history):
     history = np.array(history)
     iterations = history.shape[0]
     N = history.shape[1]
-    
-    plt.figure(figsize=(10,5))
+    fig, ax = plt.subplots(figsize=(8,5))
     for state in range(N):
-        plt.plot(range(iterations), history[:, state]**2, marker='o', label=f"|{state:0{int(np.log2(N))}b}>")
-    plt.xlabel("Grover Iteration")
-    plt.ylabel("Probability")
-    plt.title("Grover Algorithm Amplitude Evolution")
-    plt.grid(True)
-    plt.legend()
-    plt.show()
+        ax.plot(range(iterations), history[:,state]**2, marker='o', label=f"|{state:0{int(np.log2(N))}b}>")
+    ax.set_xlabel("Grover Iteration")
+    ax.set_ylabel("Probability")
+    ax.set_title("Amplitude Evolution")
+    ax.grid(True)
+    ax.legend()
+    st.pyplot(fig)
 
-# --- Parameters ---
-n_qubits = 2        # Number of qubits (states = 2^n_qubits)
-correct_index = 2   # Index of correct answer (binary 10)
-
-# --- Simulation ---
+# --- Run Simulation ---
 history = simulate_grover(n_qubits, correct_index)
-
-# --- Plot ---
 plot_history(history)
